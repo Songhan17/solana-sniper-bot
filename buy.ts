@@ -347,16 +347,17 @@ function shouldBuy(key: string): boolean {
 
 const runListener = async () => {
   await init();
-  const runTimestamp = Math.floor(new Date().getTime() / 1000);
   const raydiumSubscriptionId = solanaConnection.onProgramAccountChange(
     RAYDIUM_LIQUIDITY_PROGRAM_ID_V4,
     async (updatedAccountInfo) => {
       const key = updatedAccountInfo.accountId.toString();
       const poolState = LIQUIDITY_STATE_LAYOUT_V4.decode(updatedAccountInfo.accountInfo.data);
       const poolOpenTime = parseInt(poolState.poolOpenTime.toString());
-      const existing = existingLiquidityPools.has(key);
+      // use current time not start time, 30s¡ü¡ý
+      const currentTime  = Math.floor(new Date().getTime() / 1000) - 30;
+      const existing = existingLiquidityPools.has(key)
 
-      if (poolOpenTime > runTimestamp && !existing) {
+      if (poolOpenTime > currentTime && !existing) {
         existingLiquidityPools.add(key);
         const _ = processRaydiumPool(updatedAccountInfo.accountId, poolState);
       }
